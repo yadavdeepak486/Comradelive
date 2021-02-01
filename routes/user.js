@@ -15,7 +15,6 @@ router.get('/users', async (req, res) => {
 
 
 // post User ..w
-
 router.post('/users', async (req, res) => {
     const user = new User({
 
@@ -136,30 +135,10 @@ router.post('/usersedit', async (req, res) => {
     }
 })
 
-// //Update a user ..w
-// router.post('/userseditbypost', async (req, res) => {
-//     try {
-//         const updatedUser = await User.findOneAndUpdate(
-//             { _id: req.body._id }, {
-//             $set: req.body
-//         }, { new: true });
-//         res.json(updatedUser)
-//     } catch (err) {
-//         res.json({ message: err });
-//     }
-// })
 
 router.get('/profile/:name', (req, res) => {
     res.send('You are on id ' + req.params.name)
 })
-
-
-
-
-
-
-
-
 
 
 
@@ -183,6 +162,77 @@ const ensuretoken = (req, res, next) => {
     }
 
 }
+
+//view user
+router.post('/view', async (req, res) => {
+    try {
+        const findexplicitusers = await User.find({ _id: { $ne: req.body._id } })
+        res.json({
+            findexplicitusers: findexplicitusers
+        })
+    } catch (error) {
+        res.json({
+            error: error
+        })
+    }
+})
+
+// router.post('/distance', async (req, res) => {
+
+//     //Calculating distance
+//     const earthRadius = 6378.1000;
+//     //get user lat, lng
+//     const lat1 = req.body.lat1
+//     const lat2 = req.body.lat2
+//     const lng1 = req.body.lng1
+//     const lng2 = req.body.lng2
+//     const dLat = Math.PI * (lat1 - lat2) / 180;
+//     const dLng = Math.PI * (lng1 - lng2) / 180;
+//     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+//         Math.cos(Math.PI * (lat2) / 180) * Math.cos(Math.PI * (lat1) / 180) *
+//         Math.sin(dLng / 2) * Math.sin(dLng / 2);
+//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//     const dist = earthRadius * c;
+//     res.json({
+//         distance: dist
+//     })
+// })
+
+router.post('/filterview', async (req, res) => {
+    const outputwithdistance = {};
+    const somearray = [];
+
+    const distancecalc = await User.find({ $and: [{ dob: { $gte: req.body.minage } }, { dob: { $lte: req.body.maxage } }, { height: { $gte: req.body.minheight } }, { height: { $lte: req.body.maxheight } }, { _id: { $ne: req.body._id } }, { gender: { $eq: req.body.genderpref } }] })
+    if (distancecalc) {
+        for (const user of distancecalc) {
+            const earthRadius = 6378.1000;
+            const someobj = {}
+            const lat1 = user.lat
+            const lng1 = user.long
+            const lat2 = req.body.lat2
+            const lng2 = req.body.lng2
+            const dLat = Math.PI * (lat1 - lat2) / 180;
+            const dLng = Math.PI * (lng1 - lng2) / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.PI * (lat2) / 180) * Math.cos(Math.PI * (lat1) / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const dist = earthRadius * c;
+            someobj.data = user
+            someobj.distance = dist
+            somearray.push(someobj)
+        }
+        res.json(somearray)
+    } else {
+        res.json(error)
+    }
+})
+
+//if user is male automaticalyy show females for him
+//in viewed user all the age group user will be shown if he post view user with age limits he will get the filtered users,
+//if he wants find the user and filter with height limits he will get the filtered users with default age group,
+//if user has some longlat give him or view distance along with it.
+
 
 router.get('/protected', ensuretoken, function (req, res) {
     jwt.verify(req.token, 'my_secret_key', function (err, data) {

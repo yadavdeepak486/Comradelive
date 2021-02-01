@@ -6,7 +6,7 @@ const SendOtp = require('sendotp');
 
 // required model
 const User = require('../models/user');
-const sendOtp = new SendOtp('351065AThUWMW1ss60052d52P1');
+const sendOtp = new SendOtp('351065A1dKwJf83zmK5ff46488');
 
 
 
@@ -42,7 +42,6 @@ router.post('/verifyotp', async (req, res) => {
     sendOtp.verify(getmobnumber, receivedotp, async function (error, data) {
         if (data.type == 'success') {
             const findIf = await User.findOne({ phone: getmobnumber })
-            const token = jwt.sign({ phone: getmobnumber }, secretkey)
             if (!findIf) {
                 console.log('User not found please login')
                 var someuser = new User({
@@ -58,7 +57,7 @@ router.post('/verifyotp', async (req, res) => {
                     })
                 })
             } else {
-                obj.data1 = data
+                obj.data = data
                 res.json({
                     status: true,
                     obj,
@@ -69,7 +68,7 @@ router.post('/verifyotp', async (req, res) => {
         }
         if (data.type == 'error') {
             const findsaveduser = await User.find({ phone: getmobnumber })
-            obj.data4 = data
+            obj.data = data
             res.json({
                 status: false,
                 obj,

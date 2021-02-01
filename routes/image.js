@@ -18,12 +18,6 @@ cloudinary.config({
 
 var upload = multer({
     storage: multer.diskStorage({
-        // destination: function (req, file, cb) {
-        //     cb(null, './Images');
-        // },
-        // filename: function (req, file, callback) {
-        //     callback(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
-        // }
     })
 })
 
@@ -51,15 +45,53 @@ router.post("/upload", upload.single('avatar'), async (req, res) => {
     }
 });
 
-
+//working method to upload single image
 router.post('/uploadimage', upload.single('image'), async (req, res) => {
     try {
         const response = await cloudinary.uploader.upload(req.file.path)
-        res.json(response)
-    } catch (error) {
-        res.json({
-            error: error
+        // Create instance of user
+        let userimg = new userImg({
+            image_user_id: req.body.image_user_id,
+            avatar: response.secure_url,
+            public_id: response.public_id
         })
+        // Save user
+        await userimg.save()
+        res.json({
+            userimg: userimg
+        })
+    } catch (error) {
+        res.json(error)
+    }
+})
+
+
+router.get('/getimage', async (req, res) => {
+    try {
+        let user = await userImg.find({ image_user_id: req.body.image_user_id })
+        res.json(user)
+    } catch (error) {
+        res.json(error)
+    }
+})
+
+router.post('/delimage', async (req, res) => {
+    try {
+        // Find user by id
+        const userImage = await userImg.find({ $and: [{ image_user_id: req.body.image_user_id }, { public_id: req.body.public_id }] });
+        // const cloudinary_id = req.body.public_id
+        // Delete image from cloudinary
+        // const deletehuakinhi = await cloudinary.uploader.delete_resources(user.public_id)
+        // delete image in db
+        const dataremoved = userImage.remove()
+        //console.log(deletehuakinhi);
+        res.json({
+            user: userImage
+            // deletehuakinhi: dataremoved
+        })
+
+    } catch (error) {
+        res.json(error)
     }
 })
 

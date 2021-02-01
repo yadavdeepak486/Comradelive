@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Match = require('../models/match');
 
-//const match = require('../controllers/match');
 
 router.get('/matchs', async (req, res) => {
     try {

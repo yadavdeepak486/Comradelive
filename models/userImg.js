@@ -9,11 +9,9 @@ const UserImgSchema = mongoose.Schema({
     avatar: {
         type: String
     },
-    cloudinary_id: {
+    public_id: {
         type: String
     }
-},
-    { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
-);
+});
 
 module.exports = mongoose.model('UserImg', UserImgSchema);
